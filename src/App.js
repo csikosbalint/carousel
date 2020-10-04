@@ -1,26 +1,64 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useEffect, useState } from 'react';
+import Carousel from 'react-material-ui-carousel';
+import {
+  Card,
+  CardMedia,
+  CardContent,
+  Typography,
+  createMuiTheme,
+  ThemeProvider,
+} from '@material-ui/core';
 
-function App() {
+export default function App() {
+  const [items, setItems] = useState();
+  const [theme, setTheme] = useState();
+
+  useEffect(() => {
+    const queryString = require('query-string');
+    const params = queryString.parse(window.location.search);
+
+    fetch(`${params.api}/items`)
+      .then((resp) => resp.json())
+      .then((json) => setItems(json));
+
+    fetch(`${params.api}/themes`)
+      .then((resp) => resp.json())
+      .then((json) => setTheme(createMuiTheme(json)));
+  }, []);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <>
+      {items && theme ? (
+        <ThemeProvider theme={theme}>
+          <Carousel animation="slide" navButtonsAlwaysVisible={true}>
+            {items.map((item, i) => (
+              <Item key={i} item={item} />
+            ))}
+          </Carousel>
+        </ThemeProvider>
+      ) : (
+        <p>loading</p>
+      )}
+    </>
   );
 }
 
-export default App;
+function Item(props) {
+  return (
+    <Card raised>
+      <CardMedia
+        component="img"
+        alt="Contemplative Reptile"
+        height="300"
+        width="800"
+        image="https://picsum.photos/800/300"
+        title="Contemplative Reptile"
+      />
+      <CardContent>
+        <Typography gutterBottom variant="h5" component="h2">
+          {props.item.name}
+        </Typography>
+      </CardContent>
+    </Card>
+  );
+}
